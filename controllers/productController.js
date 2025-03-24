@@ -53,7 +53,7 @@ async function save_image(fileName, imageData, folder, fileExtension) {
     await fs.promises.writeFile(filePath, buffer);
 
     // Return the URL of the saved image
-    return `http://localhost:5000/uploads/${folder}/${fileName}`; // Adjust the URL as needed
+    return `https://powerwaves-backend.onrender.com/uploads/${folder}/${fileName}`; // Adjust the URL as needed
 }
 
 exports.addMarketPlaceProduct = async (req, res) => {
