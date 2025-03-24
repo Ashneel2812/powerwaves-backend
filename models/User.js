@@ -1,0 +1,30 @@
+const mongoose = require('mongoose');
+
+const UserSchema = new mongoose.Schema({
+    firstName: String,
+    lastName: String,
+    email: { type: String, unique: true },
+    phone: { type: String, default: null },
+    password: String,
+    address: String,
+    buyerSeller: String,
+    plan: { type: String, default: null },
+    price: { type: Number, default: null },    
+    paymentId: String,
+    orderId: String,
+    usedFree:String,
+    productLimit: Number,
+    razorpayOrderId:String,
+    ifscCode: { type: String },
+    accountNumber: { type: String},
+    branch: { type: String },
+    bankName: { type: String},
+    images: { type: [String], default: [] },
+    googleMapLocation: { type: String },
+    commission: { type: Number, default: 0 },
+    totalPayment: { type: Number, default: 0 },
+    planPurchaseTimestamp: { type: Date, default: null },
+    lastPaymentDate: { type: Date, default: null }, 
+});
+  
+module.exports = mongoose.model('User', UserSchema);
