@@ -5,7 +5,16 @@ const MarketPlace = require('../models/MarketPlace');
 const jwt = require('jsonwebtoken'); // Import the jsonwebtoken package
 const User = require('../models/User');
 const Review = require('../models/Review');
+const AWS = require('aws-sdk');
 
+
+AWS.config.update({
+    accessKeyId: "AKIASS5R6XGTFFG2CHPI",      // Store in environment variables for security
+    secretAccessKey: 'F4CDbGOcX6toXj3BfRkHHY68Gyvjeq2AjdcocA0N',  // Store in environment variables for security
+    region: 'ap-south-1'  // Set your region here
+  });
+  
+const s3 = new AWS.S3();
 exports.getMarketProducts = async (req, res) => {
     try {
 
@@ -62,18 +71,21 @@ async function save_image(fileName, imageData, folder, fileExtension) {
         Key: `${folder}/${fileName}`, // Path inside the bucket (e.g., "Market Place/product_image_12345.jpg")
         Body: Buffer.from(imageData, 'base64'), // Convert base64 image data to Buffer
         ContentType: `image/${fileExtension}`, // Set content type based on file extension
-        ACL: 'public-read', // Set ACL to allow public access to the file
     };
 
     try {
-        // Upload the image to S3
+        console.log('Uploading to S3 with parameters:', s3Params);  // Log the parameters to check them
+
+        // Perform the upload to S3
         const s3Response = await s3.upload(s3Params).promise();
 
+        console.log('S3 upload successful:', s3Response);  // Log the successful response from S3
+
         // Return the URL of the uploaded image
-        return s3Response.Location; // This gives the public URL of the uploaded image
+        return s3Response.Location;  // S3 URL (e.g., 'https://s3.amazonaws.com/your-bucket-name/Market%20Place/product_image_12345.jpg')
     } catch (error) {
-        console.error('Error uploading image to S3:', error);
-        throw new Error('Failed to upload image to S3');
+        console.error('Error uploading image to S3:', error);  // Log the full error
+        throw new Error(`Failed to upload image to S3: ${error.message}`);
     }
 }
 

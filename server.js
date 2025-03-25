@@ -16,7 +16,7 @@ AWS.config.update({
     region: 'ap-south-1'  // Set your region here
   });
   
-  const s3 = new AWS.S3();
+const s3 = new AWS.S3();
 
 const app = express();
 connectDB();
