@@ -86,12 +86,6 @@ exports.addMarketPlaceProduct = async (req, res) => {
             const imageDataBase64 = imageData.split(",")[1];
             return await save_image(fileName, imageDataBase64, folder, fileExtension);
         };
-        
-        console.log(image1); // Log image1 data
-        console.log(image2); // Log image2 data
-        console.log(image3); // Log image3 data
-        console.log(image4); // Log image4 data
-
         // Save all images
         const imageUrls = await Promise.all([
             saveImage(image1, 'Market Place'),

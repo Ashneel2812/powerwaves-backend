@@ -16,8 +16,12 @@ app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
 
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/api/users', userRoutes);
+app.use('/uploads', (req, res, next) => {
+    console.log('Request received for:', req.url);
+    next();  // Proceed to static file handler
+});
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/admin',adminRoutes );
 app.use('/api/orders', orderRoutes);
