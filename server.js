@@ -7,7 +7,16 @@ const productRoutes = require('./routes/productRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const path = require('path'); // Add this line to import the path module
 const orderRoutes = require('./routes/orderRoutes'); // Import the order routes
+const AWS = require('aws-sdk');
 
+
+AWS.config.update({
+    accessKeyId: "AKIASS5R6XGTFFG2CHPI",      // Store in environment variables for security
+    secretAccessKey: 'F4CDbGOcX6toXj3BfRkHHY68Gyvjeq2AjdcocA0N',  // Store in environment variables for security
+    region: 'ap-south-1'  // Set your region here
+  });
+  
+  const s3 = new AWS.S3();
 
 const app = express();
 connectDB();

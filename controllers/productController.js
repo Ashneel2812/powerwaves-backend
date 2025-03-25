@@ -34,27 +34,49 @@ exports.getMarketProducts = async (req, res) => {
     }
 };
 
+// async function save_image(fileName, imageData, folder, fileExtension) {
+//     // Define the directory where images will be saved
+//     const dir = path.join(__dirname, '..', 'uploads', folder); // Adjust the path as needed
+
+//     // Create the directory if it doesn't exist
+//     if (!fs.existsSync(dir)) {
+//         fs.mkdirSync(dir, { recursive: true });
+//     }
+
+//     // Create the full path for the file
+//     const filePath = path.join(dir, fileName);
+
+//     // Decode the base64 image data
+//     const buffer = Buffer.from(imageData, 'base64');
+
+//     // Write the image file to the filesystem
+//     await fs.promises.writeFile(filePath, buffer);
+
+//     // Return the URL of the saved image
+//     return `https://powerwaves-backend.onrender.com/uploads/${folder}/${fileName}`; // Adjust the URL as needed
+// }
+
 async function save_image(fileName, imageData, folder, fileExtension) {
-    // Define the directory where images will be saved
-    const dir = path.join(__dirname, '..', 'uploads', folder); // Adjust the path as needed
+    const s3Params = {
+        Bucket: 'ashneel-demo', // Replace with your S3 bucket name
+        Key: `${folder}/${fileName}`, // Path inside the bucket (e.g., "Market Place/product_image_12345.jpg")
+        Body: Buffer.from(imageData, 'base64'), // Convert base64 image data to Buffer
+        ContentType: `image/${fileExtension}`, // Set content type based on file extension
+        ACL: 'public-read', // Set ACL to allow public access to the file
+    };
 
-    // Create the directory if it doesn't exist
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
+    try {
+        // Upload the image to S3
+        const s3Response = await s3.upload(s3Params).promise();
+
+        // Return the URL of the uploaded image
+        return s3Response.Location; // This gives the public URL of the uploaded image
+    } catch (error) {
+        console.error('Error uploading image to S3:', error);
+        throw new Error('Failed to upload image to S3');
     }
-
-    // Create the full path for the file
-    const filePath = path.join(dir, fileName);
-
-    // Decode the base64 image data
-    const buffer = Buffer.from(imageData, 'base64');
-
-    // Write the image file to the filesystem
-    await fs.promises.writeFile(filePath, buffer);
-
-    // Return the URL of the saved image
-    return `https://powerwaves-backend.onrender.com/uploads/${folder}/${fileName}`; // Adjust the URL as needed
 }
+
 
 exports.addMarketPlaceProduct = async (req, res) => {
     const { title, price, productdescription, completedescription, category, qty, weight, brand, color, capacity, totalpoweroutlets, amperage, image1, image2, image3, image4 } = req.body;
