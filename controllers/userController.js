@@ -69,7 +69,6 @@ exports.loginUser = async (req, res) => {
 
 exports.sendDetails = async (req, res) => {
     const { name, email, phonenumber, message } = req.body;
-  
     try {
       // 1. Save the form data into MongoDB
       const newForm = new Form({
@@ -86,7 +85,7 @@ exports.sendDetails = async (req, res) => {
   
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: 'Failed to submit details'});
+      res.status(500).json({ message: error.message});
     }
   };
 
