@@ -22,7 +22,7 @@ const app = express();
 connectDB();
 
 app.use(cors());
-app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.json({ limit: '150mb' }));  // Adjust the limit as needed
 
 
 app.use('/uploads', (req, res, next) => {
