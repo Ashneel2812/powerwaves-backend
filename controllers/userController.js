@@ -31,7 +31,7 @@ exports.signinUser = async (req, res) => {
         let userPlan = purchaseFreePlan ? "Free" : ""; // If purchaseFreePlan is true, set plan to "Free", else set to ""
         let userPrice = purchaseFreePlan ? price : ""; // If purchaseFreePlan is true, set price to the provided price, else set to ""
         let usedFree = purchaseFreePlan ? "Yes" : ""; // If purchaseFreePlan is true, set usedFree to "Yes", else set to ""
-
+        let productLimit = purchaseFreePlan ? 10 : 0;
         const user = new User({
             firstName: firstname,
             lastName: lastname,
@@ -41,7 +41,7 @@ exports.signinUser = async (req, res) => {
             buyerSeller: option,
             plan: userPlan, // Conditionally set plan
             price: userPrice, // Conditionally set price
-            productLimit,
+            productLimit:productLimit,
             usedFree: usedFree // Conditionally set usedFree
         });
 
