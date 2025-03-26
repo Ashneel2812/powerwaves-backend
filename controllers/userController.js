@@ -331,6 +331,7 @@ const instance = new razorpay({
 
 exports.checkProductLimit = async (req, res) => {
     const { email } = req.params; // Get the email from the request parameters
+
     try {
         // Find the user by email
         const user = await User.findOne({ email: email });
@@ -342,7 +343,6 @@ exports.checkProductLimit = async (req, res) => {
 
         // Get the product limit, defaulting to 0 if not set
         const productLimit = user.productLimit || 0;
-        let userPlan = user.plan || "";
 
         // Get the plan purchase timestamp
         const planPurchaseTimestamp = new Date(user.planPurchaseTimestamp);
@@ -357,47 +357,18 @@ exports.checkProductLimit = async (req, res) => {
         const oneYearAgo = new Date();
         oneYearAgo.setFullYear(currentTimestamp.getFullYear() - 1);
 
-        // Fetch the pricing data from the database
-        const pricingData = await Pricing.find(); // Assuming you have a Pricing model
-
-        // Check if pricing data for each plan exists
-        const basicPlanPricing = pricingData.find(plan => plan.plan === "Basic");
-        const popularPlanPricing = pricingData.find(plan => plan.plan === "Popular");
-        const businessPlanPricing = pricingData.find(plan => plan.plan === "Business");
-
-        // Check if the pricing data exists for all required plans
-        if (!basicPlanPricing || !popularPlanPricing || !businessPlanPricing) {
-            return res.status(500).json({ error: "Pricing data is missing for some plans" });
+        // Check if the plan purchase timestamp is older than a month or a year
+        if (planPurchaseTimestamp < oneMonthAgo) {
+            return res.status(200).json({ message: "Product limit has expired. Please renew your plan." });
         }
 
-        // Define the prices that require a plan upgrade (based on pricing data from the database)
-        const upgradePricesOneMonth = [
-            basicPlanPricing.monthlyPrice, 
-            popularPlanPricing.monthlyPrice, 
-            businessPlanPricing.monthlyPrice
-        ];
-
-        const upgradePricesOneYear = [
-            basicPlanPricing.yearlyPrice, 
-            popularPlanPricing.yearlyPrice, 
-            businessPlanPricing.yearlyPrice
-        ];
-
-        // Check for upgrade plan conditions based on price and timestamp
-        if (user.plan === "Free" && planPurchaseTimestamp < oneMonthAgo) {
-            return res.status(200).json({ message: "Upgrade plan" });
+        if (planPurchaseTimestamp < oneYearAgo) {
+            return res.status(200).json({ message: "Product limit has expired. Please renew your plan." });
         }
 
-        if (upgradePricesOneMonth.includes(user.price) && planPurchaseTimestamp < oneMonthAgo) {
-            return res.status(200).json({ message: "Upgrade plan" });
-        }
+        // Return product limit if valid
+        return res.status(200).json({ limit: productLimit });
 
-        if (upgradePricesOneYear.includes(user.price) && planPurchaseTimestamp < oneYearAgo) {
-            return res.status(200).json({ message: "Upgrade plan" });
-        }
-
-        // Return product limit if no upgrade is required
-        return res.status(200).json({ limit: productLimit, plan: userPlan });
     } catch (error) {
         console.error(`Error checking product limit: ${error.message}`);
         return res.status(500).json({ error: error.message });

@@ -23,7 +23,10 @@ const UserSchema = new mongoose.Schema({
     googleMapLocation: { type: String },
     commission: { type: Number, default: 0 },
     totalPayment: { type: Number, default: 0 },
-    planPurchaseTimestamp: { type: Date, default: null },
+    planPurchaseTimestamp: {
+        type: Date,
+        default: Date.now, // Sets the default value to the current time
+    },
     lastPaymentDate: { type: Date, default: null }, 
 });
   
