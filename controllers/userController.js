@@ -22,23 +22,36 @@ const s3 = new AWS.S3();
 
 
 exports.signinUser = async (req, res) => {
-    const { firstname, lastname, email, password, address, option, plan, price,productLimit } = req.body;
+    const { firstname, lastname, email, password, address, option, plan, price, productLimit, purchaseFreePlan } = req.body;
+    
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = new User({ firstName: firstname, lastName: lastname, email, password: hashedPassword, address, buyerSeller: option, plan, price,productLimit });
         
-        // if (option === "Seller") {
-        //     if ((plan === "Popular" && (price === 35000 || price === 2625)) || (plan === "Basic" && (price === 2000 || price === 1500))) {
-        //         user.productLimit = 1;
-        //     }
-        // }
-        
+        // Conditionally set values based on purchaseFreePlan
+        let userPlan = purchaseFreePlan ? "Free" : ""; // If purchaseFreePlan is true, set plan to "Free", else set to ""
+        let userPrice = purchaseFreePlan ? price : ""; // If purchaseFreePlan is true, set price to the provided price, else set to ""
+        let usedFree = purchaseFreePlan ? "Yes" : ""; // If purchaseFreePlan is true, set usedFree to "Yes", else set to ""
+
+        const user = new User({
+            firstName: firstname,
+            lastName: lastname,
+            email,
+            password: hashedPassword,
+            address,
+            buyerSeller: option,
+            plan: userPlan, // Conditionally set plan
+            price: userPrice, // Conditionally set price
+            productLimit,
+            usedFree: usedFree // Conditionally set usedFree
+        });
+
         await user.save();
         res.status(200).json({ status: "success", message: "User created successfully" });
     } catch (error) {
         res.status(500).json({ status: "error", message: error.message });
     }
 };
+
 
 exports.loginUser = async (req, res) => {
     const { username, password } = req.body;
@@ -184,10 +197,13 @@ const instance = new razorpay({
           }
   
           // Check if the user already has a plan
-          if (user.plan) {
-              return res.status(400).json({ message: `Already purchased a plan: ${user.plan}` });
-          }
+        //   if (plan != "Free" && user.plan=="Free") {
+        //       return res.status(400).json({ message: `Already purchased a plan: ${user.plan}` });
+        //   }
   
+          if (plan == "Free" && user.plan=="Free") {
+            return res.status(400).json({ message: `Already purchased a Free Plan` });
+        }
           // Setting productLimit based on the plan and price
           if (plan === 'Basic') {
               if (price === "2000" || price === "1500") {
@@ -256,7 +272,6 @@ const instance = new razorpay({
     let { plan, price } = req.body; // Get the plan and price from the request body
     let productLimit;
     const timestamp = new Date(); // Get the current timestamp
-    
     try {
         const token = req.headers.authorization?.split(' ')[1];
         if (!token) {
@@ -280,7 +295,6 @@ const instance = new razorpay({
         if (plan === 'Free' && user.usedFree == "No") {
                 productLimit = 10;
                 price = 0;
-                
         } 
         else if (plan === 'Free' && user.usedFree == "Yes") {
             return res.status(400).json({ message: `Already purchased the free plan once`});
@@ -410,7 +424,11 @@ exports.createRazorpayOrder = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-        if (user.plan) {
+        if (plan == "Free" && user.plan=="Free") {
+            return res.status(400).json({ message: `Already purchased a Free Plan` });
+        }
+
+        if (user.plan == plan) {
             return res.status(400).json({ message: `Already purchased a plan: ${user.plan}` });
         }
         const pricingPlans = await Pricing.find();

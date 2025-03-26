@@ -12,7 +12,7 @@ const UserSchema = new mongoose.Schema({
     price: { type: Number, default: null },    
     paymentId: String,
     orderId: String,
-    usedFree:String,
+    usedFree:{ type: String, default: "No" },
     productLimit: Number,
     razorpayOrderId:String,
     ifscCode: { type: String },
