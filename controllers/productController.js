@@ -140,6 +140,7 @@ exports.addMarketPlaceProduct = async (req, res) => {
             brand,
             color,
             capacity,
+            purpose:"Addition",
             total_power_outlets: totalpoweroutlets,
             amperage,
             user: userId,
