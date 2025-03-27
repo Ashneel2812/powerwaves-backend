@@ -69,7 +69,10 @@ exports.rejectProduct = async (req, res) => {
         // Find the product by ID and update the workflow_state to "Rejected"
         const updatedProduct = await MarketPlace.findByIdAndUpdate(
             productId,
-            { workflow_state: "Rejected" },
+            { 
+                workflow_state: "Rejected", 
+                purpose: "Deletion" // Adding the purpose field
+            },
             { new: true, runValidators: true } // Return the updated document and run validators
         );
 
@@ -195,7 +198,8 @@ exports.getMarketplaceProducts = async (req, res) => {
         // Fetch products where addedBy is not "Admin" and workflow_state is "Approved"
         const marketplaceProducts = await MarketPlace.find({ 
             addedBy: { $ne: "Admin" },
-            workflow_state: "Approved"
+            workflow_state: "Approved",
+            purpose:"Addition"
         }).populate({
             path: 'user',
             select: 'firstName lastName' // Only select the firstName and lastName fields

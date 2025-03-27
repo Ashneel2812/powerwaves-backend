@@ -21,7 +21,7 @@ exports.getMarketProducts = async (req, res) => {
         // Log the incoming request query parameters
 
         // Define the filter for the query
-        const filter = { workflow_state: 'Approved', addedBy: { $ne: 'Admin' }}; // You can modify this based on req.query if needed
+        const filter = { workflow_state: 'Approved',purpose:"Addition", addedBy: { $ne: 'Admin' }}; // You can modify this based on req.query if needed
 
         // Execute the query to get approved products
         const approvedProducts = await MarketPlace.find(filter)

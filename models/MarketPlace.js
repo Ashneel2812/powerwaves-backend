@@ -11,6 +11,7 @@ const MarketPlaceSchema = new mongoose.Schema({
     weight: { type: String },
     brand: { type: String },
     color: { type: String },
+    purpose:{ type: String },
     capacity: { type: String },
     total_power_outlets: { type: Number },
     amperage: { type: Number },
