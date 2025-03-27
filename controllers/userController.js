@@ -629,7 +629,7 @@ exports.getUserDetails= async(req,res) => {
       }
 }
 
-exports.updateUserDetails= async(req,res) => {
+exports.updateUserDetails = async (req, res) => {
     const {
         firstName,
         lastName,
@@ -645,16 +645,17 @@ exports.updateUserDetails= async(req,res) => {
         image3,
         googleMapLocation,
     } = req.body;
+
     try {
         // Retrieve the token from the Authorization header
-        const token = req.headers.authorization?.split(' ')[1];  // Assuming the token is sent as "Bearer <token>"
+        const token = req.headers.authorization?.split(' ')[1]; // Assuming the token is sent as "Bearer <token>"
         if (!token) {
             return res.status(401).json({ message: { error: "No token provided" } });
         }
 
         // Verify and decode the token to get the user ID
-        const decoded = jwt.verify(token, '45193980012041902ab3b0fd832459d6383d8be7408e6c2ff1ed7a1d60e44e3745b193ff4b8d2c35d97ae793d214841342f34e14beaa8b792806e82354e09e46');  // Use the same secret as before
-        const userId = decoded.id;  // Extract the user ID from the decoded token
+        const decoded = jwt.verify(token, '45193980012041902ab3b0fd832459d6383d8be7408e6c2ff1ed7a1d60e44e3745b193ff4b8d2c35d97ae793d214841342f34e14beaa8b792806e82354e09e46');
+        const userId = decoded.id;
 
         // Find the user by ID to update their profile
         const user = await User.findById(userId);
@@ -662,10 +663,13 @@ exports.updateUserDetails= async(req,res) => {
             return res.status(404).json({ message: { error: "User not found" } });
         }
 
-        // Update the user fields based on the request body
-        
-        let imageUrls = []
-        // Save images if provided
+        let imageUrls = [];
+        const imagesToUpload = [];
+
+        // Function to check if the image is base64-encoded
+        const isBase64Image = (image) => image && image.startsWith("data:image/");
+
+        // Function to save image to S3
         const saveImage = async (imageData, folder) => {
             if (!imageData) {
                 throw new Error("Image data is required");
@@ -676,59 +680,79 @@ exports.updateUserDetails= async(req,res) => {
             return await save_image(fileName, imageDataBase64, folder, fileExtension);
         };
 
-        const save_image= async (fileName, imageData, folder, fileExtension) => {
+        // Function to save image to S3
+        const save_image = async (fileName, imageData, folder, fileExtension) => {
             const s3Params = {
-                Bucket: 'ashneel-demo', // Replace with your S3 bucket name
-                Key: `${folder}/${fileName}`, // Path inside the bucket (e.g., "Market Place/product_image_12345.jpg")
-                Body: Buffer.from(imageData, 'base64'), // Convert base64 image data to Buffer
-                ContentType: `image/${fileExtension}`, // Set content type based on file extension
+                Bucket: 'ashneel-demo',
+                Key: `${folder}/${fileName}`,
+                Body: Buffer.from(imageData, 'base64'),
+                ContentType: `image/${fileExtension}`,
             };
-        
-                console.log('Uploading to S3 with parameters:', s3Params);  // Log the parameters to check them
-        
-                // Perform the upload to S3
-                const s3Response = await s3.upload(s3Params).promise();
-        
-                console.log('S3 upload successful:', s3Response);  // Log the successful response from S3
-        
-                // Return the URL of the uploaded image
-                return s3Response.Location;  // S3 URL (e.g., 'https://s3.amazonaws.com/your-bucket-name/Market%20Place/product_image_12345.jpg')
-            }
-        
+
+            console.log('Uploading to S3 with parameters:', s3Params);
+
+            // Perform the upload to S3
+            const s3Response = await s3.upload(s3Params).promise();
+
+            // Return the URL of the uploaded image
+            return s3Response.Location;
+        };
+
+        // Check if each image has a value and process accordingly
         if (image1 || image2 || image3) {
-            // Create an array to store the image upload promises
-            const imagesToUpload = [];
-        
-            // Check if each image has a value and add the corresponding image upload promise
+            // Check each image
             if (image1) {
-                imagesToUpload.push(saveImage(image1, 'Market Place'));
+                if (isBase64Image(image1)) {
+                    imagesToUpload.push(saveImage(image1, 'Market Place'));
+                } else {
+                    imageUrls.push(image1); // Directly add URL if not base64
+                }
             }
+
             if (image2) {
-                imagesToUpload.push(saveImage(image2, 'Market Place'));
+                if (isBase64Image(image2)) {
+                    imagesToUpload.push(saveImage(image2, 'Market Place'));
+                } else {
+                    imageUrls.push(image2);
+                }
             }
+
             if (image3) {
-                imagesToUpload.push(saveImage(image3, 'Market Place'));
+                if (isBase64Image(image3)) {
+                    imagesToUpload.push(saveImage(image3, 'Market Place'));
+                } else {
+                    imageUrls.push(image3);
+                }
             }
-        
+
             // Wait for all images to be uploaded
-            imageUrls = await Promise.all(imagesToUpload);
+            const uploadedImages = await Promise.all(imagesToUpload);
+
+            // Merge uploaded images with existing URLs
+            imageUrls = [...imageUrls, ...uploadedImages]; // Merge arrays correctly
+            console.log(uploadedImages, imageUrls); // Logs updated imageUrls
         }
+
+        // Update user details with the new image URLs
         user.phone = phone;
         user.address = address;
         user.ifscCode = ifscCode;
         user.accountNumber = accountNumber;
         user.branch = branch;
         user.bankName = bankName;
-        user.images = imageUrls
+        user.images = imageUrls; // Use the final imageUrls array
         user.googleMapLocation = googleMapLocation;
+
         await user.save();
 
         res.status(200).json({ message: { success: "Profile updated successfully" } });
+
     } catch (error) {
         console.error('Error updating user profile:', error);
         res.status(500).json({ message: { error: error.message } });
     }
-}
+};
+
 
 
 
