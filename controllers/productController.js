@@ -177,7 +177,7 @@ exports.getUserProducts = async (req, res) => {
         // Log the incoming request query parameters
 
         // Define the filter for the query
-        const filter = { user: userId,workflow_state:'Approved' }; // Filter products by the logged-in user
+        const filter = { user: userId,workflow_state:'Approved',purpose:"Addition" }; // Filter products by the logged-in user
 
         // Execute the query to get approved products for the logged-in user
         const approvedProducts = await MarketPlace.find(filter)
