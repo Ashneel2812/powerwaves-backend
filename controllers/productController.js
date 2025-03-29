@@ -308,7 +308,7 @@ exports.getProductsByCategory = async (req, res) => {
     const { product_category } = req.params; // Get the product ID from the request parameters
     try {
         // Find the product by ID
-        const products = await MarketPlace.find({ category: product_category });
+        const products = await MarketPlace.find({ category: product_category,purpose:"Addition",workflow_state:"Accepted" });
         
         // Check if the product exists
         if (!products) {
