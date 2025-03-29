@@ -287,7 +287,8 @@ exports.getProductById = async (req, res) => {
         const userProducts = await MarketPlace.find({
             user: id,
             addedBy: { $ne: "Admin" },
-            workflow_state: "Approved"
+            workflow_state: "Approved",
+            purpose:"Addition"
         });
 
         // Extract the IDs of the user's products
