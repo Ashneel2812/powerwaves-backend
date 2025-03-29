@@ -286,7 +286,8 @@ exports.getProductById = async (req, res) => {
         // Retrieve all products listed by the user, excluding those added by "Admin"
         const userProducts = await MarketPlace.find({
             user: id,
-            addedBy: { $ne: "Admin" }
+            addedBy: { $ne: "Admin" },
+            workflow_state: "Approved"
         });
 
         // Extract the IDs of the user's products
