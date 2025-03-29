@@ -115,7 +115,7 @@ exports.getDashboardData = async (req, res) => {
         const adminProductsCount = await MarketPlace.countDocuments({ addedBy: "Admin" });
 
         // Fetch count of products not added by Admin
-        const userProductsCount = await MarketPlace.countDocuments({ addedBy: { $ne: "Admin" },workflow_state: "Approved" });
+        const userProductsCount = await MarketPlace.countDocuments({ workflow_state: 'Approved',purpose:"Addition", addedBy: { $ne: 'Admin' } });
 
         const totalPendingOrders = await Order.countDocuments({status : "processing"}); 
 
