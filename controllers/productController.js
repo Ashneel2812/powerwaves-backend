@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const fs = require('fs');
 const path = require('path');
 const Product = require('../models/Product');
@@ -9,9 +11,9 @@ const AWS = require('aws-sdk');
 
 
 AWS.config.update({
-    accessKeyId: "AKIASS5R6XGTFFG2CHPI",      // Store in environment variables for security
-    secretAccessKey: 'F4CDbGOcX6toXj3BfRkHHY68Gyvjeq2AjdcocA0N',  // Store in environment variables for security
-    region: 'ap-south-1'  // Set your region here
+    accessKeyId: process.env.AWS_ACCESS_KEY,      // Store in environment variables for security
+    secretAccessKey: process.env.AWS_SECRET_KEY,  // Store in environment variables for security
+    region: process.env.AWS_REGION  // Set your region here
   });
   
 const s3 = new AWS.S3();
@@ -67,7 +69,7 @@ exports.getMarketProducts = async (req, res) => {
 
 async function save_image(fileName, imageData, folder, fileExtension) {
     const s3Params = {
-        Bucket: 'ashneel-demo', // Replace with your S3 bucket name
+        Bucket: process.env.S3_BUCKET, // Replace with your S3 bucket name
         Key: `${folder}/${fileName}`, // Path inside the bucket (e.g., "Market Place/product_image_12345.jpg")
         Body: Buffer.from(imageData, 'base64'), // Convert base64 image data to Buffer
         ContentType: `image/${fileExtension}`, // Set content type based on file extension
@@ -101,7 +103,7 @@ exports.addMarketPlaceProduct = async (req, res) => {
         }
 
         // Verify and decode the token to get the user ID
-        const decoded = jwt.verify(token, '45193980012041902ab3b0fd832459d6383d8be7408e6c2ff1ed7a1d60e44e3745b193ff4b8d2c35d97ae793d214841342f34e14beaa8b792806e82354e09e46'); // Use the same secret as before
+        const decoded = jwt.verify(token, process.env.JWT_SECRET); // Use the same secret as before
         const userId = decoded.id; // Extract the user ID from the decoded token
         const isAdmin = decoded.buyerSeller;
         var workflow_state = "Pending";
@@ -171,7 +173,7 @@ exports.getUserProducts = async (req, res) => {
         }
 
         // Verify the token
-        const decoded = jwt.verify(token, '45193980012041902ab3b0fd832459d6383d8be7408e6c2ff1ed7a1d60e44e3745b193ff4b8d2c35d97ae793d214841342f34e14beaa8b792806e82354e09e46'); // Replace 'your_jwt_secret' with your actual secret
+        const decoded = jwt.verify(token, process.env.JWT_SECRET); // Replace 'your_jwt_secret' with your actual secret
         const userId = decoded.id; // Extract the user ID from the decoded token
 
 
@@ -209,7 +211,7 @@ exports.deleteUserProduct = async (req, res) => {
         }
 
         // Verify and decode the token to get the user ID
-        const decoded = jwt.verify(token, '45193980012041902ab3b0fd832459d6383d8be7408e6c2ff1ed7a1d60e44e3745b193ff4b8d2c35d97ae793d214841342f34e14beaa8b792806e82354e09e46'); // Use the same secret as before
+        const decoded = jwt.verify(token, process.env.JWT_SECRET); // Use the same secret as before
         const userId = decoded.id; // Extract the user ID from the decoded token
 
         // Check if the product ID is provided in the request body

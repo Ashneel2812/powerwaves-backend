@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const jwt = require('jsonwebtoken');
 
 const authAdmin = (req, res, next) => {
@@ -10,7 +12,7 @@ const authAdmin = (req, res, next) => {
 
     try {
         // Verify and decode the token
-        const decoded = jwt.verify(token, '45193980012041902ab3b0fd832459d6383d8be7408e6c2ff1ed7a1d60e44e3745b193ff4b8d2c35d97ae793d214841342f34e14beaa8b792806e82354e09e46'); // Use your actual secret
+        const decoded = jwt.verify(token, process.env.JWT_SECRET); // Use your actual secret
         // Check if the user role is 'admin'
         if (decoded.buyerSeller !== 'Admin') {
             return res.status(403).json({ message: 'Access denied. Admins only.' });

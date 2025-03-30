@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken'); // Import the jsonwebtoken package
@@ -13,9 +15,9 @@ const AWS = require('aws-sdk');
 
 
 AWS.config.update({
-    accessKeyId: "AKIASS5R6XGTFFG2CHPI",      // Store in environment variables for security
-    secretAccessKey: 'F4CDbGOcX6toXj3BfRkHHY68Gyvjeq2AjdcocA0N',  // Store in environment variables for security
-    region: 'ap-south-1'  // Set your region here
+    accessKeyId: process.env.AWS_ACCESS_KEY,      // Store in environment variables for security
+    secretAccessKey: process.env.AWS_SECRET_KEY,  // Store in environment variables for security
+    region: process.env.AWS_REGION  // Set your region here
   });
   
 const s3 = new AWS.S3();
@@ -66,7 +68,7 @@ exports.loginUser = async (req, res) => {
     }
 
     // Generate a JWT token
-    const token = jwt.sign({ id: user._id, buyerSeller: user.buyerSeller,email:user.email }, '45193980012041902ab3b0fd832459d6383d8be7408e6c2ff1ed7a1d60e44e3745b193ff4b8d2c35d97ae793d214841342f34e14beaa8b792806e82354e09e46', { expiresIn: '1h' }); 
+    const token = jwt.sign({ id: user._id, buyerSeller: user.buyerSeller,email:user.email }, process.env.JWT_SECRET, { expiresIn: '1h' }); 
 
     res.json({
         status: 'success',
@@ -115,7 +117,7 @@ exports.sendDetails = async (req, res) => {
 //         }
 
 //         // Verify and decode the token to get the user ID
-//         const decoded = jwt.verify(token, '45193980012041902ab3b0fd832459d6383d8be7408e6c2ff1ed7a1d60e44e3745b193ff4b8d2c35d97ae793d214841342f34e14beaa8b792806e82354e09e46'); // Replace with your actual secret
+//         const decoded = jwt.verify(token, process.env.JWT_SECRET); // Replace with your actual secret
 //         const userId = decoded.id; // Extract the user ID from the decoded token
         
 //         // Find the user by ID
@@ -188,7 +190,7 @@ const instance = new razorpay({
               return res.status(401).json({ message: { error: "No token provided" } });
           }
   
-          const decoded = jwt.verify(token, '45193980012041902ab3b0fd832459d6383d8be7408e6c2ff1ed7a1d60e44e3745b193ff4b8d2c35d97ae793d214841342f34e14beaa8b792806e82354e09e46');
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
           const userId = decoded.id;
           
           const user = await User.findById(userId);
@@ -278,7 +280,7 @@ const instance = new razorpay({
             return res.status(401).json({ message: { error: "No token provided" } });
         }
 
-        const decoded = jwt.verify(token, '45193980012041902ab3b0fd832459d6383d8be7408e6c2ff1ed7a1d60e44e3745b193ff4b8d2c35d97ae793d214841342f34e14beaa8b792806e82354e09e46');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.id;
         
         const user = await User.findById(userId);
@@ -386,7 +388,7 @@ exports.createRazorpayOrder = async (req, res) => {
             return res.status(401).json({ message: { error: "No token provided" } });
         }
 
-        const decoded = jwt.verify(token, '45193980012041902ab3b0fd832459d6383d8be7408e6c2ff1ed7a1d60e44e3745b193ff4b8d2c35d97ae793d214841342f34e14beaa8b792806e82354e09e46');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.id;
 
         const user = await User.findById(userId);
@@ -480,7 +482,7 @@ exports.verifyPaymentAndUpdateUser = async (req, res) => {
             return res.status(401).json({ message: { error: "No token provided" } });
         }
 
-        const decoded = jwt.verify(token, '45193980012041902ab3b0fd832459d6383d8be7408e6c2ff1ed7a1d60e44e3745b193ff4b8d2c35d97ae793d214841342f34e14beaa8b792806e82354e09e46');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.id;
 
         const user = await User.findById(userId);
@@ -549,7 +551,7 @@ exports.upgradePaymentAndUpdateUser = async (req, res) => {
             return res.status(401).json({ message: { error: "No token provided" } });
         }
 
-        const decoded = jwt.verify(token, '45193980012041902ab3b0fd832459d6383d8be7408e6c2ff1ed7a1d60e44e3745b193ff4b8d2c35d97ae793d214841342f34e14beaa8b792806e82354e09e46');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.id;
 
         const user = await User.findById(userId);
@@ -617,7 +619,7 @@ exports.getUserDetails= async(req,res) => {
             return res.status(401).json({ message: { error: "No token provided" } });
         }
 
-        const decoded = jwt.verify(token, '45193980012041902ab3b0fd832459d6383d8be7408e6c2ff1ed7a1d60e44e3745b193ff4b8d2c35d97ae793d214841342f34e14beaa8b792806e82354e09e46');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.id;
         const user = await User.findById(userId);
         
@@ -654,7 +656,7 @@ exports.updateUserDetails = async (req, res) => {
         }
 
         // Verify and decode the token to get the user ID
-        const decoded = jwt.verify(token, '45193980012041902ab3b0fd832459d6383d8be7408e6c2ff1ed7a1d60e44e3745b193ff4b8d2c35d97ae793d214841342f34e14beaa8b792806e82354e09e46');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.id;
 
         // Find the user by ID to update their profile
@@ -683,7 +685,7 @@ exports.updateUserDetails = async (req, res) => {
         // Function to save image to S3
         const save_image = async (fileName, imageData, folder, fileExtension) => {
             const s3Params = {
-                Bucket: 'ashneel-demo',
+                Bucket: process.env.S3_BUCKET,
                 Key: `${folder}/${fileName}`,
                 Body: Buffer.from(imageData, 'base64'),
                 ContentType: `image/${fileExtension}`,

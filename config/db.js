@@ -1,8 +1,10 @@
+require('dotenv').config();
+
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
     try {
-        const db = await mongoose.connect('mongodb+srv://iashneel:vikVD7Pb4dsXNKiE@powerwaves.xro9f.mongodb.net/powerwaves?retryWrites=true&w=majority&appName=powerwaves', {
+        const db = await mongoose.connect(process.env.MONGO_URI, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
             useFindAndModify: false
