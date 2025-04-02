@@ -1,4 +1,5 @@
-// routes/payments.js
+require('dotenv').config();
+
 const express = require('express');
 const router = express.Router();
 const Razorpay = require('razorpay');
@@ -12,8 +13,8 @@ const {
   } = require('../controllers/paymentController');
 // Initialize Razorpay
 const razorpay = new Razorpay({
-  key_id: "rzp_test_CEcuqpm7JMLl6e",
-  key_secret: "4EouTATC8SsWDJjigoHAfGpy"
+  key_id: process.env.RAZORPAY_KEY,
+  key_secret: process.env.RAZORPAY_SECRET_KEY
 });
 
 // Create Razorpay order

@@ -175,8 +175,8 @@ exports.sendDetails = async (req, res) => {
 // };  
 
 const instance = new razorpay({
-    key_id: 'rzp_test_CEcuqpm7JMLl6e', // Replace with your Razorpay key ID
-    key_secret: '4EouTATC8SsWDJjigoHAfGpy' // Replace with your Razorpay key secret
+    key_id: process.env.RAZORPAY_KEY, // Replace with your Razorpay key ID
+    key_secret: process.env.RAZORPAY_SECRET_KEY // Replace with your Razorpay key secret
   });
   
   exports.updateUserPlanAndPrice = async (req, res) => {
@@ -495,7 +495,7 @@ exports.verifyPaymentAndUpdateUser = async (req, res) => {
         }
         const body = razorpay_order_id + '|' + razorpay_payment_id;
         const expectedSignature = crypto
-            .createHmac('sha256', "4EouTATC8SsWDJjigoHAfGpy")
+            .createHmac('sha256', process.env.RAZORPAY_SECRET_KEY)
             .update(body.toString())
             .digest('hex');
         
@@ -564,7 +564,7 @@ exports.upgradePaymentAndUpdateUser = async (req, res) => {
         }
         const body = razorpay_order_id + '|' + razorpay_payment_id;
         const expectedSignature = crypto
-            .createHmac('sha256', "4EouTATC8SsWDJjigoHAfGpy")
+            .createHmac('sha256', process.env.RAZORPAY_SECRET_KEY)
             .update(body.toString())
             .digest('hex');
         

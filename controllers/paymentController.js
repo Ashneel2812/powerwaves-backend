@@ -1,4 +1,5 @@
-// controllers/paymentController.js
+require('dotenv').config();
+
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const User = require('../models/User'); // Adjust path as needed
@@ -6,8 +7,8 @@ const Order = require('../models/Order'); // Adjust path as needed
 
 // Initialize Razorpay with your key credentials
 const razorpay = new Razorpay({
-  key_id: "rzp_test_CEcuqpm7JMLl6e",
-  key_secret: "4EouTATC8SsWDJjigoHAfGpy"
+  key_id: process.env.RAZORPAY_KEY,
+  key_secret: process.env.RAZORPAY_SECRET_KEY
 });
 
 // Create a new Razorpay order for subscription
@@ -60,7 +61,7 @@ exports.verifySubscriptionPayment = async (req, res) => {
 
     // Verify the payment signature
     const generatedSignature = crypto
-      .createHmac('sha256',"4EouTATC8SsWDJjigoHAfGpy" )
+      .createHmac('sha256',process.env.RAZORPAY_SECRET_KEY )
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest('hex');
 
@@ -144,7 +145,7 @@ exports.verifyPayment = async (req, res) => {
   const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
 
   const body = razorpay_order_id + "|" + razorpay_payment_id;
-  const expectedSignature = crypto.createHmac('sha256', '4EouTATC8SsWDJjigoHAfGpy')
+  const expectedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_SECRET_KEY)
                                     .update(body.toString())
                                     .digest('hex');
 
