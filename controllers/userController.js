@@ -345,7 +345,7 @@ exports.checkProductLimit = async (req, res) => {
 
         // Get the product limit, defaulting to 0 if not set
         const productLimit = user.productLimit || 0;
-
+        const plan = user.plan;
         // Get the plan purchase timestamp
         const planPurchaseTimestamp = new Date(user.planPurchaseTimestamp);
 
@@ -369,7 +369,7 @@ exports.checkProductLimit = async (req, res) => {
         }
 
         // Return product limit if valid
-        return res.status(200).json({ limit: productLimit });
+        return res.status(200).json({ limit: productLimit,plan:plan });
 
     } catch (error) {
         console.error(`Error checking product limit: ${error.message}`);
@@ -633,6 +633,7 @@ exports.getUserDetails= async(req,res) => {
 
 exports.updateUserDetails = async (req, res) => {
     const {
+        shopName,
         firstName,
         lastName,
         email,
@@ -736,6 +737,7 @@ exports.updateUserDetails = async (req, res) => {
         }
 
         // Update user details with the new image URLs
+        user.shopName = shopName;
         user.phone = phone;
         user.address = address;
         user.ifscCode = ifscCode;

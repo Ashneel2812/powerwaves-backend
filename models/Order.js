@@ -20,7 +20,9 @@ const OrderSchema = new mongoose.Schema({
         state: { type: String, required: true },     // Keep state
         street: { type: String, required: true },    // Keep street
         pinCode: { type: String, required: true },   // Keep pinCode as zip
-        town: { type: String, required: true }       // Keep town
+        town: { type: String, required: true },
+        altphone: { type: String, required: true },
+        landmark: { type: String, required: true },
     },
     orderSummary: {
         subtotal: { type: Number, required: true },
