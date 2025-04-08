@@ -507,9 +507,9 @@ exports.verifyPaymentAndUpdateUser = async (req, res) => {
         // After successful payment, update the user
         let productLimit;
         if (plan == 'Basic') {
-            productLimit = user.productLimit+30;
-        } else if (plan === 'Popular') {
             productLimit = user.productLimit+50;
+        } else if (plan === 'Popular') {
+            productLimit = user.productLimit+150;
         } else if (plan === 'Business') {
             productLimit = user.productLimit+9999;
         } else {
@@ -576,9 +576,9 @@ exports.upgradePaymentAndUpdateUser = async (req, res) => {
         // After successful payment, update the user
         let productLimit;
         if (plan == 'Basic') {
-            productLimit = user.productLimit+30;
-        } else if (plan === 'Popular') {
             productLimit = user.productLimit+50;
+        } else if (plan === 'Popular') {
+            productLimit = user.productLimit+150;
         } else if (plan === 'Business') {
             productLimit = user.productLimit+9999;
         } else {
