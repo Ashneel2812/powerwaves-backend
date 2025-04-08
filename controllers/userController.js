@@ -507,11 +507,11 @@ exports.verifyPaymentAndUpdateUser = async (req, res) => {
         // After successful payment, update the user
         let productLimit;
         if (plan == 'Basic') {
-            productLimit = 30;
+            productLimit = user.productLimit+30;
         } else if (plan === 'Popular') {
-            productLimit = 50;
+            productLimit = user.productLimit+50;
         } else if (plan === 'Business') {
-            productLimit = 9999;
+            productLimit = user.productLimit+9999;
         } else {
             return res.status(400).json({ message: "Invalid plan provided" });
         }
