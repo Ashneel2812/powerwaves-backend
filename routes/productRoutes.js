@@ -1,5 +1,5 @@
 const express = require('express');
-const { getMarketProducts, addMarketPlaceProduct, getUserProducts, deleteUserProduct, adminProductList, getProductById, getProductsByCategory,createReview, getReviewById, likeProduct,updateQuantities } = require('../controllers/productController');
+const { getMarketProducts, addMarketPlaceProduct, getUserProducts, deleteUserProduct, adminProductList, getProductById, getProductsByCategory,createReview, getReviewById, likeProduct,updateQuantities,updatePrice } = require('../controllers/productController');
 const router = express.Router();
 
 router.get('/marketplace', getMarketProducts);
@@ -13,5 +13,5 @@ router.post('/reviews', createReview);
 router.get('/reviews/:product_id', getReviewById);
 router.post('/like/:productId', likeProduct);
 router.post('/update-quantities', updateQuantities);
-
+router.put('/update-price',updatePrice);
 module.exports = router;

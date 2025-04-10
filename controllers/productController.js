@@ -202,6 +202,51 @@ exports.getUserProducts = async (req, res) => {
     }
 };
 
+exports.updatePrice = async (req, res) => {
+    try {
+      // Check for the token in the Authorization header
+      const token = req.headers.authorization?.split(' ')[1]; // Assuming the token is sent as "Bearer <token>"
+      if (!token) {
+        return res.status(401).json({ message: { error: "No token provided" } });
+      }
+  
+      // Verify and decode the token to get the user ID
+      const decoded = jwt.verify(token, process.env.JWT_SECRET); // Use the same secret as before
+      const userId = decoded.id; // Extract the user ID from the decoded token
+  
+      // Check if the product ID and new price are provided in the request body
+      const { productId, newPrice } = req.body; // Get productId and newPrice from the request body
+      if (!productId || newPrice === undefined) {
+        return res.status(400).json({ message: { error: "Product ID and new price are required" } });
+      }
+  
+      // Check if the Market Place record exists
+      const product = await MarketPlace.findById(productId); // Use the product ID to find the product
+      if (!product) {
+        return res.status(404).json({ message: "Market Place record not found" });
+      }
+  
+      // Optionally, you can check if the product belongs to the user (uncomment if needed)
+      // if (product.user.toString() !== userId) {
+      //   return res.status(403).json({ message: "You are not authorized to update this product" });
+      // }
+  
+      // Update the product's price
+      product.price = newPrice; // Set the new price
+  
+      // Save the updated product
+      await product.save();
+  
+      // Send a success response
+      return res.status(200).json({ message: "Price updated successfully", product });
+  
+    } catch (error) {
+      console.error(`Error in updateProductPrice: ${error.message}`);
+      return res.status(500).json({ message: "Error", error: error.message });
+    }
+  };
+  
+
 exports.deleteUserProduct = async (req, res) => {
     try {
         // Check for the token in the Authorization header
