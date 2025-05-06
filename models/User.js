@@ -5,7 +5,14 @@ const UserSchema = new mongoose.Schema({
     lastName: String,
     shopName:String,
     email: { type: String, unique: true },
-    phone: { type: String, default: null },
+    phone: {
+        type: String,
+        default: null,
+        set: function (v) {
+          // Remove all whitespace characters (spaces, tabs, etc.)
+          return v ? v.replace(/\s+/g, '') : null;
+        }
+      },
     password: String,
     address: String,
     buyerSeller: String,

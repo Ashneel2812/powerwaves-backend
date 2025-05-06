@@ -15,7 +15,14 @@ const OrderSchema = new mongoose.Schema({
         firstName: { type: String, required: true }, // Keep firstName
         lastName: { type: String, required: true },  // Keep lastName
         email: { type: String, required: true },     // Keep email
-        phone: { type: String, required: true },     // Keep phone
+        phone: {
+          type: String,
+          default: null,
+          set: function (v) {
+            // Remove all whitespace characters (spaces, tabs, etc.)
+            return v ? v.replace(/\s+/g, '') : null;
+          }
+        },
         country: { type: String, required: true },   // Keep country
         state: { type: String, required: true },     // Keep state
         street: { type: String, required: true },    // Keep street
