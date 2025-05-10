@@ -27,6 +27,7 @@ const app = express();
 connectDB();
 
 app.use(cors());
+app.use('/api/webhook', webhookRoutes);
 app.use(bodyParser.json({ limit: '150mb' }));  // Adjust the limit as needed
 
 
