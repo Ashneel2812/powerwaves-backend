@@ -9,6 +9,7 @@ const productRoutes = require('./routes/productRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const path = require('path'); // Add this line to import the path module
 const orderRoutes = require('./routes/orderRoutes'); // Import the order routes
+const webhookRoutes = require('./routes/webhookRoutes');
 const AWS = require('aws-sdk');
 
 const PORT = process.env.PORT || 5000;
@@ -39,6 +40,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/admin',adminRoutes );
 app.use('/api/orders', orderRoutes);
+app.use('/api/webhook', webhookRoutes);
+
 // In app.js or server.js
 const paymentRoutes = require('./routes/payments');
 app.use('/api/payments', paymentRoutes);
