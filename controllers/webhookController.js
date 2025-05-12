@@ -37,7 +37,8 @@ exports.handleRazorpayWebhook = async (req, res) => {
       expected: expectedSignature,
       received: signature,
       matches: expectedSignature === signature,
-      bodyPreview: req.body ? req.body.substring(0, 50) + '...' : 'empty'
+      bodyPreview: req.body
+      ? JSON.stringify(req.body).substring(0, 50) + '...' : 'empty'
     });
 
     if (expectedSignature !== signature) {
