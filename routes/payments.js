@@ -26,6 +26,7 @@ router.post('/create-order', async (req, res) => {
       amount: Math.round(amount * 100), // amount in smallest currency unit (paise)
       currency,
       receipt,
+      payment_capture: 1, // 👈 Add this line for auto-capture
       notes
     };
     

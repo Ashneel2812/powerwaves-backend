@@ -51,7 +51,7 @@ exports.handleRazorpayWebhook = async (req, res) => {
 
     const event = JSON.parse(req.body);
     console.log('📦 Raw webhook event:', JSON.stringify(event, null, 2));
-    
+    console.log("event : ",event)
     console.log('📊 Parsed webhook event:', {
       event: event.event,
       eventId: event.payload?.payment?.entity?.id || 'unknown',

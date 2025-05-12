@@ -22,6 +22,7 @@ exports.createSubscriptionOrder = async (req, res) => {
       amount: amount * 100, // Razorpay expects amount in paise
       currency: currency || 'INR',
       receipt: receipt || `receipt_${Date.now()}`,
+      payment_capture: 1, // 👈 Add this line for auto-capture
       notes: {
         ...notes,
         userId: userId
