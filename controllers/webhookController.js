@@ -5,7 +5,8 @@ const Razorpay = require('razorpay');
 exports.handleRazorpayWebhook = async (req, res) => {
   console.log('🔔 Webhook received:', {
     headers: req.headers,
-    bodyLength: req.body ? req.body.length : 0
+    bodyLength: req.body ? req.body.length : 0,
+    timestamp: new Date().toISOString()
   });
 
   try {
@@ -14,7 +15,8 @@ exports.handleRazorpayWebhook = async (req, res) => {
 
     console.log('🔑 Webhook verification:', {
       hasSecret: !!secret,
-      hasSignature: !!signature
+      hasSignature: !!signature,
+      secretLength: secret ? secret.length : 0
     });
 
     if (!secret || !signature) {
@@ -34,7 +36,8 @@ exports.handleRazorpayWebhook = async (req, res) => {
     console.log('🔐 Signature verification:', {
       expected: expectedSignature,
       received: signature,
-      matches: expectedSignature === signature
+      matches: expectedSignature === signature,
+      bodyPreview: req.body ? req.body.substring(0, 50) + '...' : 'empty'
     });
 
     if (expectedSignature !== signature) {
@@ -46,25 +49,41 @@ exports.handleRazorpayWebhook = async (req, res) => {
     }
 
     const event = JSON.parse(req.body);
-    console.log('📦 Parsed webhook event:', {
+    console.log('📦 Raw webhook event:', JSON.stringify(event, null, 2));
+    
+    console.log('📊 Parsed webhook event:', {
       event: event.event,
+      eventId: event.payload?.payment?.entity?.id || 'unknown',
       paymentId: event.payload?.payment?.entity?.id,
       orderId: event.payload?.payment?.entity?.order_id,
       paymentStatus: event.payload?.payment?.entity?.status,
       paymentMethod: event.payload?.payment?.entity?.method,
       amount: event.payload?.payment?.entity?.amount,
-      currency: event.payload?.payment?.entity?.currency
+      currency: event.payload?.payment?.entity?.currency,
+      notes: event.payload?.payment?.entity?.notes || {},
+      description: event.payload?.payment?.entity?.description || 'No description'
     });
 
     const payment = event.payload?.payment?.entity;
+    if (!payment) {
+      console.error('❌ Invalid payment payload structure');
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid payment payload structure'
+      });
+    }
+    
     const razorpayOrderId = payment?.order_id;
+    console.log('🔍 Looking up user with orderId:', razorpayOrderId);
 
     // Find user with that order ID
     const user = await User.findOne({ razorpayOrderId });
     console.log('👤 User lookup:', {
       found: !!user,
       orderId: razorpayOrderId,
-      userId: user?._id
+      userId: user?._id,
+      email: user?.email,
+      currentPlan: user?.plan
     });
 
     if (!user) {
@@ -81,9 +100,11 @@ exports.handleRazorpayWebhook = async (req, res) => {
         console.log('🔄 Processing payment attempt:', {
           orderId: razorpayOrderId,
           paymentMethod: payment.method,
-          amount: payment.amount,
+          amount: payment.amount / 100, // Convert to actual currency
           currency: payment.currency,
-          status: payment.status
+          status: payment.status,
+          vpa: payment.vpa || 'N/A', // For UPI payments
+          card: payment.card ? `${payment.card.network} ****${payment.card.last4}` : 'N/A'
         });
 
         // Update user's payment status to attempted
@@ -115,17 +136,22 @@ exports.handleRazorpayWebhook = async (req, res) => {
         });
 
       case 'payment.captured':
+      case 'payment.authorized': // Also handle authorized payments
         console.log('💳 Processing successful payment:', {
           orderId: razorpayOrderId,
           paymentMethod: payment.method,
-          amount: payment.amount,
+          amount: payment.amount / 100, // Convert to actual currency
           currency: payment.currency,
-          status: payment.status
+          status: payment.status,
+          event: event.event
         });
 
+        // Determine the actual payment status based on the event
+        const actualPaymentStatus = event.event === 'payment.captured' ? 'completed' : 'authorized';
+        
         const updates = {
           razorpayPaymentId: payment.id,
-          paymentStatus: 'completed',
+          paymentStatus: actualPaymentStatus,
           planPurchaseTimestamp: new Date(),
           paymentMethod: payment.method
         };
@@ -133,7 +159,8 @@ exports.handleRazorpayWebhook = async (req, res) => {
         console.log('📝 User updates:', {
           userId: user._id,
           currentPlan: user.plan,
-          currentLimit: user.productLimit
+          currentLimit: user.productLimit,
+          newPaymentStatus: actualPaymentStatus
         });
 
         // Calculate product limit based on plan
@@ -189,7 +216,19 @@ exports.handleRazorpayWebhook = async (req, res) => {
           orderId: razorpayOrderId,
           errorCode: payment.error_code,
           errorDescription: payment.error_description,
-          status: payment.status
+          status: payment.status,
+          method: payment.method,
+          amount: payment.amount / 100,
+          currency: payment.currency,
+          contactDetails: payment.contact || 'Not provided',
+          email: payment.email || 'Not provided'
+        });
+
+        // Add more detailed error logging based on error code
+        console.log('🔍 Detailed error analysis:', {
+          errorCode: payment.error_code,
+          description: payment.error_description,
+          possibleSolution: getDomainVerificationSolution(payment.error_code)
         });
 
         // Update user's payment status to failed
@@ -219,12 +258,17 @@ exports.handleRazorpayWebhook = async (req, res) => {
           message: 'Payment failure recorded',
           error: {
             code: payment.error_code,
-            description: payment.error_description
+            description: payment.error_description,
+            solution: getDomainVerificationSolution(payment.error_code)
           }
         });
 
       default:
-        console.log('ℹ️ Ignoring event:', event.event);
+        console.log('ℹ️ Unhandled event type:', {
+          event: event.event,
+          entityId: payment.id,
+          orderId: razorpayOrderId
+        });
         return res.status(200).json({
           success: true,
           message: 'Webhook received but no action taken',
@@ -236,7 +280,7 @@ exports.handleRazorpayWebhook = async (req, res) => {
     console.error('❌ Webhook processing error:', {
       message: error.message,
       stack: error.stack,
-      body: req.body
+      bodyPreview: req.body ? req.body.substring(0, 100) + '...' : 'empty'
     });
     return res.status(500).json({
       success: false,
@@ -245,3 +289,17 @@ exports.handleRazorpayWebhook = async (req, res) => {
     });
   }
 };
+
+// Helper function to provide solutions for common error codes
+function getDomainVerificationSolution(errorCode) {
+  switch(errorCode) {
+    case 'BAD_REQUEST_ERROR':
+      return 'This appears to be a domain verification issue. Make sure your domain is verified in the Razorpay Dashboard. Go to Settings > Website & App Settings and verify that "photobazaar.in" is added and verified.';
+    case 'GATEWAY_ERROR':
+      return 'There was an issue with the payment gateway. The customer should try again or use a different payment method.';
+    case 'PAYMENT_FAILED':
+      return 'The payment failed. This could be due to insufficient funds or a temporary issue with the payment method. Ask the customer to try again or use a different payment method.';
+    default:
+      return 'Check the Razorpay dashboard for more information about this error.';
+  }
+}
