@@ -31,7 +31,7 @@ app.use(cors());
 
 // Important: Configure body parser AFTER webhook route
 // This ensures raw body is available for webhook signature verification
-app.use('/api/webhook', webhookRoutes);
+app.use('/api/webhook',express.raw({ type: 'application/json' }),  webhookRoutes);
 
 // Configure body parser for other routes
 app.use(bodyParser.json({ limit: '150mb' }));

@@ -280,7 +280,8 @@ exports.handleRazorpayWebhook = async (req, res) => {
     console.error('❌ Webhook processing error:', {
       message: error.message,
       stack: error.stack,
-      bodyPreview: req.body ? req.body.substring(0, 100) + '...' : 'empty'
+      bodyPreview: req.body
+      ? JSON.stringify(req.body).substring(0, 100) + '...' : 'empty'    
     });
     return res.status(500).json({
       success: false,
