@@ -380,88 +380,88 @@ exports.checkProductLimit = async (req, res) => {
 exports.createRazorpayOrder = async (req, res) => {
     let { plan, price } = req.body;
     let productLimit;
-    const timestamp = new Date(); // Get the current timestamp
+    const timestamp = new Date();
 
     try {
         const token = req.headers.authorization?.split(' ')[1];
         if (!token) {
+            console.log("No token provided");
             return res.status(401).json({ message: { error: "No token provided" } });
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.id;
+        console.log("Decoded User ID:", userId);
 
         const user = await User.findById(userId);
-        const planPurchaseTimestamp = new Date(user.planPurchaseTimestamp);
-
         if (!user) {
+            console.log("User not found");
             return res.status(404).json({ message: "User not found" });
         }
-        if (plan == "Free" && user.plan=="Free") {
+
+        console.log("User current plan:", user.plan);
+
+        if (plan === "Free" && user.plan === "Free") {
             return res.status(400).json({ message: `Already purchased a Free Plan` });
         }
 
-        if (user.plan == plan) {
+        if (user.plan === plan) {
             return res.status(400).json({ message: `Already purchased a plan: ${user.plan}` });
         }
-        const pricingPlans = await Pricing.find();
 
-        // Find the correct pricing plan based on the `plan` provided in the request
+        const pricingPlans = await Pricing.find();
         const pricing = pricingPlans.find(planItem => planItem.plan === plan);
 
         if (!pricing) {
-        return res.status(400).json({ message: "Invalid plan provided" });
+            console.log("Invalid plan provided:", plan);
+            return res.status(400).json({ message: "Invalid plan provided" });
         }
 
-        // Ensure price is treated as a number
         price = parseInt(price, 10);
+        console.log(`Creating Razorpay order for plan: ${plan}, price: ${price}`);
 
-        // Setting productLimit based on the plan and price
         if (plan === 'Basic') {
-            // Check if the price matches either monthly or yearly price for Basic plan
             if (price === pricing.monthlyPrice || price === pricing.yearlyPrice) {
                 productLimit = 30;
             } else {
                 return res.status(400).json({ message: "Invalid price for Basic plan" });
             }
         } else if (plan === 'Popular') {
-            // Check if the price matches Popular plan prices
             if (price === pricing.monthlyPrice || price === pricing.yearlyPrice) {
                 productLimit = 50;
             } else {
                 return res.status(400).json({ message: "Invalid price for Popular plan" });
             }
         } else if (plan === 'Business') {
-            // Check if the price matches Business plan prices
             if (price === pricing.monthlyPrice || price === pricing.yearlyPrice) {
                 productLimit = 99999;
             } else {
                 return res.status(400).json({ message: "Invalid price for Business plan" });
             }
-        } else {
-            return res.status(400).json({ message: "Invalid plan provided" });
         }
 
-        // Create a Razorpay order
         const orderOptions = {
-            amount: price * 100, // Amount in paise (1 INR = 100 paise)
+            amount: price * 100,
             currency: 'INR',
             receipt: `order_rcptid_${Math.floor(Math.random() * 1000)}`,
-            // notes: {
-            //     userId: userId.toString(),
-            //     plan,
-            //     price: price.toString()
-            // }
+            notes: {
+                userId: userId.toString(),
+                plan,
+                price: price.toString()
+            }
         };
+
+        console.log("Razorpay orderOptions:", orderOptions);
 
         const order = await instance.orders.create(orderOptions);
 
-        // Handle order creation failure
         if (!order) {
+            console.log("Failed to create Razorpay order");
             return res.status(500).json({ message: "Error creating Razorpay order" });
         }
 
-        // Save the order id in the user's plan info temporarily (without updating plan or price)
+        console.log("Razorpay order created:", order);
+
         await User.findByIdAndUpdate(
             userId,
             { razorpayOrderId: order.id },
@@ -479,107 +479,48 @@ exports.createRazorpayOrder = async (req, res) => {
     }
 };
 
-exports.verifyPaymentAndUpdateUser = async (req, res) => {
-    const { razorpay_payment_id, razorpay_order_id, razorpay_signature,plan,price } = req.body;
-    try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ message: { error: "No token provided" } });
-        }
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const userId = decoded.id;
-
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        if (user.razorpayOrderId !== razorpay_order_id) {
-            return res.status(400).json({ message: "Invalid order ID" });
-        }
-        const body = razorpay_order_id + '|' + razorpay_payment_id;
-        const expectedSignature = crypto
-            .createHmac('sha256', process.env.RAZORPAY_SECRET_KEY)
-            .update(body.toString())
-            .digest('hex');
-        
-        const isValidSignature = expectedSignature === razorpay_signature;
-        if (!isValidSignature) {
-            return res.status(400).json({ message: "Payment verification failed" });
-        }
-
-        // After successful payment, update the user
-        let productLimit;
-        if (plan == 'Basic') {
-            productLimit = user.productLimit+50;
-        } else if (plan === 'Popular') {
-            productLimit = user.productLimit+150;
-        } else if (plan === 'Business') {
-            productLimit = user.productLimit+9999;
-        } else {
-            return res.status(400).json({ message: "Invalid plan provided" });
-        }
-
-        const updatedUser = await User.findByIdAndUpdate(
-            userId,
-            {
-                plan,
-                price,
-                productLimit,
-                planPurchaseTimestamp: new Date(),
-                razorpayPaymentId: razorpay_payment_id,
-            },
-            { new: true }
-        );
-
-        if (!updatedUser) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        return res.status(200).json({
-            message: "Payment successful and plan updated"
-        });
-
-    } catch (error) {
-        console.error("Error verifying payment and updating user:", error.message);
-        return res.status(500).json({ message: { error: error.message } });
-    }
-};
 
 // exports.verifyPaymentAndUpdateUser = async (req, res) => {
-//     const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;    
+//     const { razorpay_payment_id, razorpay_order_id, razorpay_signature,plan,price } = req.body;
 //     try {
-//         // 1. Verify the payment signature
-//         const body = razorpay_order_id + "|" + razorpay_payment_id;
-//         const expectedSignature = crypto
-//             .createHmac('sha256', process.env.RAZORPAY_SECRET_KEY)
-//             .update(body.toString())
-//             .digest('hex');
-
-//         if (expectedSignature !== razorpay_signature) {
-//             return res.status(400).json({ message: "Invalid signature. Payment verification failed." });
+//         const token = req.headers.authorization?.split(' ')[1];
+//         if (!token) {
+//             return res.status(401).json({ message: { error: "No token provided" } });
 //         }
 
-//         // 2. Fetch the order from Razorpay to get userId and plan info
-//         const order = await razorpayInstance.orders.fetch(razorpay_order_id);
-//         const { userId, plan, price } = order.notes;
-
-//         if (!userId || !plan || !price) {
-//             return res.status(400).json({ message: "Missing order metadata" });
-//         }
+//         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+//         const userId = decoded.id;
 
 //         const user = await User.findById(userId);
 //         if (!user) {
 //             return res.status(404).json({ message: "User not found" });
 //         }
 
-//         // 3. Update the user based on the plan
+//         if (user.razorpayOrderId !== razorpay_order_id) {
+//             return res.status(400).json({ message: "Invalid order ID" });
+//         }
+//         const body = razorpay_order_id + '|' + razorpay_payment_id;
+//         const expectedSignature = crypto
+//             .createHmac('sha256', process.env.RAZORPAY_SECRET_KEY)
+//             .update(body.toString())
+//             .digest('hex');
+        
+//         const isValidSignature = expectedSignature === razorpay_signature;
+//         if (!isValidSignature) {
+//             return res.status(400).json({ message: "Payment verification failed" });
+//         }
+
+//         // After successful payment, update the user
 //         let productLimit;
-//         if (plan === 'Basic') productLimit = user.productLimit + 50;
-//         else if (plan === 'Popular') productLimit = user.productLimit + 150;
-//         else if (plan === 'Business') productLimit = user.productLimit + 9999;
-//         else return res.status(400).json({ message: "Invalid plan provided" });
+//         if (plan == 'Basic') {
+//             productLimit = user.productLimit+50;
+//         } else if (plan === 'Popular') {
+//             productLimit = user.productLimit+150;
+//         } else if (plan === 'Business') {
+//             productLimit = user.productLimit+9999;
+//         } else {
+//             return res.status(400).json({ message: "Invalid plan provided" });
+//         }
 
 //         const updatedUser = await User.findByIdAndUpdate(
 //             userId,
@@ -593,13 +534,84 @@ exports.verifyPaymentAndUpdateUser = async (req, res) => {
 //             { new: true }
 //         );
 
-//         return res.status(200).json({ message: "Payment verified and user plan updated successfully" });
+//         if (!updatedUser) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+
+//         return res.status(200).json({
+//             message: "Payment successful and plan updated"
+//         });
 
 //     } catch (error) {
-//         console.error("Error in payment verification:", error.message);
-//         return res.status(500).json({ message: "Internal server error" });
+//         console.error("Error verifying payment and updating user:", error.message);
+//         return res.status(500).json({ message: { error: error.message } });
 //     }
 // };
+
+exports.verifyPaymentAndUpdateUser = async (req, res) => {
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+    console.log("Received payment verification payload:", req.body);
+
+    try {
+        const body = razorpay_order_id + "|" + razorpay_payment_id;
+        const expectedSignature = crypto
+            .createHmac('sha256', process.env.RAZORPAY_SECRET_KEY)
+            .update(body.toString())
+            .digest('hex');
+
+        console.log("Expected Signature:", expectedSignature);
+        console.log("Received Signature:", razorpay_signature);
+
+        if (expectedSignature !== razorpay_signature) {
+            console.warn("Signature mismatch!");
+            return res.status(400).json({ message: "Invalid signature. Payment verification failed." });
+        }
+
+        const order = await razorpayInstance.orders.fetch(razorpay_order_id);
+        console.log("Fetched Razorpay order:", order);
+
+        const { userId, plan, price } = order.notes || {};
+        console.log("Order notes extracted:", { userId, plan, price });
+
+        if (!userId || !plan || !price) {
+            console.warn("Missing metadata in Razorpay order notes");
+            return res.status(400).json({ message: "Missing order metadata" });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            console.warn("User not found for userId:", userId);
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        let productLimit;
+        if (plan === 'Basic') productLimit = user.productLimit + 50;
+        else if (plan === 'Popular') productLimit = user.productLimit + 150;
+        else if (plan === 'Business') productLimit = user.productLimit + 9999;
+        else return res.status(400).json({ message: "Invalid plan provided" });
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            {
+                plan,
+                price,
+                productLimit,
+                planPurchaseTimestamp: new Date(),
+                razorpayPaymentId: razorpay_payment_id,
+            },
+            { new: true }
+        );
+
+        console.log("User updated after successful payment:", updatedUser);
+
+        return res.status(200).json({ message: "Payment verified and user plan updated successfully" });
+
+    } catch (error) {
+        console.error("Error in payment verification:", error.message);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 
 exports.upgradePaymentAndUpdateUser = async (req, res) => {
     const { razorpay_payment_id, razorpay_order_id, razorpay_signature,plan,price } = req.body;
