@@ -549,7 +549,7 @@ exports.createRazorpayOrder = async (req, res) => {
 // };
 
 exports.verifyPaymentAndUpdateUser = async (req, res) => {
-    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.query;
     console.log("Received payment verification payload:", req.body);
 
     try {
