@@ -546,22 +546,22 @@ exports.verifyPaymentAndUpdateUser = async (req, res) => {
 exports.upgradePaymentAndUpdateUser = async (req, res) => {
     const { razorpay_payment_id, razorpay_order_id, razorpay_signature,plan,price } = req.body;
     try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ message: { error: "No token provided" } });
-        }
+        // const token = req.headers.authorization?.split(' ')[1];
+        // if (!token) {
+        //     return res.status(401).json({ message: { error: "No token provided" } });
+        // }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const userId = decoded.id;
+        // const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        // const userId = decoded.id;
 
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+        // const user = await User.findById(userId);
+        // if (!user) {
+        //     return res.status(404).json({ message: "User not found" });
+        // }
 
-        if (user.razorpayOrderId !== razorpay_order_id) {
-            return res.status(400).json({ message: "Invalid order ID" });
-        }
+        // if (user.razorpayOrderId !== razorpay_order_id) {
+        //     return res.status(400).json({ message: "Invalid order ID" });
+        // }
         const body = razorpay_order_id + '|' + razorpay_payment_id;
         const expectedSignature = crypto
             .createHmac('sha256', process.env.RAZORPAY_SECRET_KEY)
