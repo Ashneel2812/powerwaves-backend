@@ -447,6 +447,11 @@ exports.createRazorpayOrder = async (req, res) => {
             amount: price * 100, // Amount in paise (1 INR = 100 paise)
             currency: 'INR',
             receipt: `order_rcptid_${Math.floor(Math.random() * 1000)}`,
+            notes: {
+                userId: userId.toString(),
+                plan,
+                price: price.toString()
+            }
         };
 
         const order = await instance.orders.create(orderOptions);
@@ -543,8 +548,7 @@ exports.createRazorpayOrder = async (req, res) => {
 // };
 
 exports.verifyPaymentAndUpdateUser = async (req, res) => {
-    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
-
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;    
     try {
         // 1. Verify the payment signature
         const body = razorpay_order_id + "|" + razorpay_payment_id;
