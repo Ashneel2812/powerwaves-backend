@@ -24,7 +24,7 @@ const s3 = new AWS.S3();
 
 
 exports.signinUser = async (req, res) => {
-    const { firstname, lastname, email, password, address, option, plan, price, productLimit, purchaseFreePlan } = req.body;
+    const { firstname, lastname, email,phone, password, address, option, plan, price, productLimit, purchaseFreePlan } = req.body;
     
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -38,6 +38,7 @@ exports.signinUser = async (req, res) => {
             firstName: firstname,
             lastName: lastname,
             email,
+            phone,
             password: hashedPassword,
             address,
             buyerSeller: option,
