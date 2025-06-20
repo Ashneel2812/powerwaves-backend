@@ -1,6 +1,6 @@
 const express = require('express');
 const authAdmin = require('../middleware/auth')
-const { getPendingProducts, approveProduct, rejectProduct, getDashboardData,getAllOrders, getAllUsers, getMarketplaceProducts, getStoreProducts, completeOrder, viewDetails,updatePlan, completeTransaction, getAllSellers,deleteUser } = require('../controllers/adminController'); // Import the new function
+const { getPendingProducts, approveProduct, rejectProduct, getDashboardData,getAllOrders, getAllUsers, getMarketplaceProducts, getStoreProducts, completeOrder, viewDetails,updatePlan, completeTransaction, getAllSellers,deleteUser, getSubscribers } = require('../controllers/adminController'); // Import the new function
 const router = express.Router();
 
 // Route to get products with workflow_state "Pending"
@@ -21,4 +21,6 @@ router.get('/orders/:orderId/details', viewDetails);
 router.post('/pricing/update', updatePlan);
 router.post('/completeTransaction/:userId', completeTransaction);
 router.delete('/users/:userId', deleteUser);
+router.get('/get-subscribers', getSubscribers);
+
 module.exports = router;
