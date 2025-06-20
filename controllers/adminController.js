@@ -2,6 +2,7 @@ const MarketPlace = require('../models/MarketPlace'); // Import the MarketPlace 
 const User = require('../models/User'); // Import the MarketPlace model
 const Order = require('../models/Order'); // Import the Order model
 const Pricing = require('../models/Pricing');
+const Subscribers = require('../models/Subscribers');
 
 exports.getPendingProducts = async (req, res) => {
     try {
@@ -96,6 +97,7 @@ exports.getDashboardData = async (req, res) => {
 
         // Fetch total products
         const totalProducts = await MarketPlace.countDocuments();
+        const totalSubscribers = await Subscribers.countDocuments();
 
         // Fetch total inventory
         const products = await MarketPlace.find({});
@@ -129,7 +131,8 @@ exports.getDashboardData = async (req, res) => {
             pendingProductsCount,
             adminProductsCount,
             userProductsCount,
-            totalPendingOrders
+            totalPendingOrders,
+            totalSubscribers
         });
     } catch (error) {
         console.error(`Error fetching dashboard data: ${error.message}`);
@@ -495,5 +498,15 @@ exports.deleteUser = async (req, res) => {
       } catch (err) {
         console.error('Error deleting user:', err);
         res.status(500).json({ message: 'Server error while deleting user' });
+      }
+};
+
+exports.getSubscribers = async (req, res) => {
+    try {
+        const subscribers = await Subscribers.find().sort({ submittedAt: -1 });
+        res.status(200).json({ subscribers });
+      } catch (err) {
+        console.error("Error fetching subscribers:", err);
+        res.status(500).json({ message: "Internal server error" });
       }
 };

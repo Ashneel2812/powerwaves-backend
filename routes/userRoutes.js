@@ -1,5 +1,5 @@
 const express = require('express');
-const { signinUser, loginUser, sendDetails, updateUserPlanAndPrice, checkProductLimit,updateFreeUserPlan, createRazorpayOrder, verifyPaymentAndUpdateUser,upgradePaymentAndUpdateUser,getUserDetails, updateUserDetails,getSellerDetails,getPlan, updateCommissionDetails } = require('../controllers/userController');
+const { signinUser, loginUser, sendDetails, updateUserPlanAndPrice, checkProductLimit,updateFreeUserPlan, createRazorpayOrder, verifyPaymentAndUpdateUser,upgradePaymentAndUpdateUser,getUserDetails, updateUserDetails,getSellerDetails,getPlan, updateCommissionDetails, subscribers } = require('../controllers/userController');
 const router = express.Router();
 
 router.post('/signin', signinUser);
@@ -16,5 +16,6 @@ router.put('/profile',updateUserDetails);
 router.get('/seller/:sellerId',getSellerDetails);
 router.get('/pricing', getPlan);
 router.put('/orders/:orderId/commision-details', updateCommissionDetails);
+router.post('/subscribers', subscribers);
 
 module.exports = router;
