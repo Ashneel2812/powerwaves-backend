@@ -1032,3 +1032,35 @@ exports.subscribers = async (req, res) => {
     }
   };
   
+
+exports.subscribers = async (req, res) => {
+    try {
+      const { name, phone, email, location, submittedAt } = req.body;
+  
+      if (!name || !phone || !email) {
+        return res.status(400).json({ message: "Name, phone, and email are required." });
+      }
+  
+      // Check if email already exists
+      const existingSubscriber = await Subscribers.findOne({ email });
+  
+      if (existingSubscriber) {
+        return res.status(200).json({ message: "Email already subscribed", subscriber: existingSubscriber });
+      }
+  
+      const subscriber = new Subscribers({
+        name,
+        phone,
+        email,
+        location,
+        submittedAt: submittedAt || new Date()
+      });
+  
+      await subscriber.save();
+  
+      res.status(201).json({ message: "Subscription successful", subscriber });
+    } catch (error) {
+      console.error("Error saving subscriber:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+};
