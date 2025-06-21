@@ -27,7 +27,8 @@ exports.getMarketProducts = async (req, res) => {
 
         // Execute the query to get approved products
         const approvedProducts = await MarketPlace.find(filter)
-            .select('title category price images quantity product_description user');
+            .select('title category price images quantity product_description user')
+            .sort({ createdAt: -1 });;
         
 
         // Map to add image URL if needed
