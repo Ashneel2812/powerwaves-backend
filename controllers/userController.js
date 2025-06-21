@@ -715,6 +715,7 @@ exports.updateUserDetails = async (req, res) => {
         accountNumber,
         branch,
         bankName,
+        gstNumber,
         image1,
         image2,
         image3,
@@ -816,6 +817,7 @@ exports.updateUserDetails = async (req, res) => {
         user.accountNumber = accountNumber;
         user.branch = branch;
         user.bankName = bankName;
+        user.gstNumber = gstNumber;
         user.images = imageUrls; // Use the final imageUrls array
         user.googleMapLocation = googleMapLocation;
 

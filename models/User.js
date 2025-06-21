@@ -27,6 +27,7 @@ const UserSchema = new mongoose.Schema({
     accountNumber: { type: String},
     branch: { type: String },
     bankName: { type: String},
+    gstNumber: { type: String},
     images: { type: [String], default: [] },
     googleMapLocation: { type: String },
     commission: { type: Number, default: 0 },
