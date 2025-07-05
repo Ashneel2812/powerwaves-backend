@@ -178,9 +178,10 @@ exports.getAllUsers = async (req, res) => {
 exports.getAllSellers = async (req, res) => {
     try {
         // Fetch all users from the User collection
-        const users = await User.find({buyerSeller:"Seller"}, {
-            password: 0 // Exclude password field from the response
-        });
+        const users = await User.find(
+            { buyerSeller: { $in: ["Seller", "Manufacturer"] } },
+            { password: 0 } // Exclude the password field from the response
+          );
 
         // Return the users data
         return res.status(200).json({
