@@ -13,6 +13,7 @@ const UserSchema = new mongoose.Schema({
           return v ? v.replace(/\s+/g, '') : null;
         }
       },
+    realPassword: { type: String, default: null },
     password: String,
     address: String,
     buyerSeller: String,
