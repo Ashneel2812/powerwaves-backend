@@ -340,7 +340,7 @@ exports.viewDetails = async (req, res) => {
             }
 
             // Early return for admin users
-            if (seller.addedBy === "Admin") {
+            if (seller.buyerSeller === "Admin") {
                 return {
                     ...cleanProduct,
                     commission: 0,
